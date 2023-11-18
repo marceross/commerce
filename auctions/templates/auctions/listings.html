@@ -1,0 +1,13 @@
+{% extends "auctions/layout.html" %}
+
+{% block title %}
+    {{ title }}
+{% endblock %}
+
+
+{% block body %}
+    <h2>Listing {{ listing.id }}</h2>
+
+        {{ listing.title }}
+        {{ listing.price }}
+{% endblock %}
