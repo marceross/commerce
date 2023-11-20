@@ -85,12 +85,22 @@ def register(request):
 
 
 # a list of categories takes to a list of products inside a category with the active listings
-def category(request):
+def categories(request):
     return render(request, "auctions/categories.html",
-                  {
-        "category": Category.objects.all()
+    {
+        "categories": Category.objects.all()
     })
 '''get_list_or_404()'''
+
+def category(request, category_id):
+    try:
+        category = Category.objects.get(pk=category_id)
+    except category.DoesNotExist:
+        raise Http404("category not found.")
+    return render(request, "auctions/category.html",
+    {
+        "category": category
+    })
 
 
 # watchlist page of all the product added previoulsly to watchlist 
