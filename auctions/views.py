@@ -9,12 +9,19 @@ from .models import User, Category, Listing, Bid, Comment
 from django import forms
 
 
-class NewListing(forms.Form):
-    title = forms.CharField (widget=forms.TextInput (attrs={'placeholder':'Enter title'}))
-    description = forms.CharField (widget=forms.Textarea (attrs={'placeholder':'Enter a description of your products'}))
-    starting_bid = forms.DecimalField
-    created_date = forms.DateTimeField
-    '''category_id = forms.Select'''
+class NewListing(forms.ModelForm):
+    class Meta:
+        model = Listing
+        exclude = ["created_date", "followers"]
+
+#https://docs.djangoproject.com/en/4.2/topics/forms/modelforms/
+#create forms from models, conventions
+
+    # title = forms.CharField (widget=forms.TextInput (attrs={'placeholder':'Enter title'}))
+    # description = forms.CharField (widget=forms.Textarea (attrs={'placeholder':'Enter a description of your products'}))
+    # starting_bid = forms.DecimalField
+    # created_date = forms.DateTimeField
+    # '''category_id = forms.Select'''
 
 class NewBid(forms.Form):
     amount = forms.IntegerField
@@ -105,25 +112,26 @@ def category(request, category_id):
 
 # watchlist page of all the product added previoulsly to watchlist 
 def watchlist(request):
-    return render(request, "auctions/watchlist.html")
+    if request.method== "POST":
+        id = request.POST.get('id')
+        listing = Listing.objects.get(pk=id)
+        listing.followers.remove(request.user)
+    return render(request, "auctions/watchlist.html",
+    {
+        "watchlist": Listing.objects.filter(followers=request.user)
+    })
 
 
 def create_page(request):
     if request.method== "POST":
         form = NewListing(request.POST)
         if form.is_valid():
-            title = form.cleaned_data["title"]
-            description = form.cleaned_data["description"]
-            form.listing.add(title, description)
-            # por que no puedo agregar a la base?
-            return Listing(request, title)
+            listing = form.save()
+            return listing_page(request, listing.id)
         else:
-            return render(request, "auctions/create_listing.html", {"form": form
-            })
-        '''con el datalle de error o mensaje'''
-    else:
-        return render(request, "auctions/create_listing.html", {"form": NewListing()
-        })
+            return render(request, "auctions/create_listing.html", {"form": form})
+    return render(request, "auctions/create_listing.html", {"form": NewListing()})
+
 
 '''def listing(request):
     return render(request, "auctions/listings.html")'''
@@ -139,14 +147,24 @@ def create_page(request):
 # be able to add comments to the listing page. All comments made should be displayed on that listing
 
 def listing_page(request, listing_id):
-    if request.method == "POST":
-        try:
-            listing = Listing.objects.get(pk=listing_id)
-        except Listing.DoesNotExist:
-            raise Http404("Listing not found.")
-        return render(request, "auctions/listings.html",{
-            "Title":listing,
-        })
+    try:
+        listing = Listing.objects.get(pk=listing_id)
+        followed = True if \
+            listing.followers.filter(pk=request.user.id).first() else False
+
+        if request.method == "POST":
+            if not followed:
+                listing.followers.add(request.user)
+            else:
+                listing.followers.remove(request.user)
+            followed = not followed
+
+    except Listing.DoesNotExist:
+        raise Http404("Listing not found.")
+    return render(request, "auctions/listings.html",{
+        "listing": listing,
+        "followed": followed
+    })
 # error, context must be a dict rather than a set
 # error, AttributeError at /1 'QuerySet' object has no attribute 'id'
 

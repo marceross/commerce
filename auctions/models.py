@@ -19,8 +19,9 @@ class Listing(models.Model):
     title = models.CharField(max_length=50)
     description = models.CharField(max_length=1000)
     starting_bid = models.DecimalField(max_digits=10, decimal_places=2)
-    created_date = models.DateTimeField("date published")
+    created_date = models.DateTimeField(auto_now_add=True)
     category_id = models.ForeignKey(Category, on_delete=models.CASCADE)
+    followers = models.ManyToManyField(User)
 
     def __str__(self):
         return f"{self.id} {self.title} {self.starting_bid} {self.created_date} {self.category_id}"
@@ -43,11 +44,9 @@ class Comment(models.Model):
     def __str__(self):
         return f"{self.comment_user} {self.comment_listing} {self.comment_time} {self.comment_text}"
 
-class Watchlist(models.Model):
-    watch_user = models.ForeignKey(User, on_delete=models.CASCADE)
-    watch_listing = models.ForeignKey(Listing, on_delete=models.CASCADE)
+# class Watchlist(models.Model):
+#     user = models.ForeignKey(User, on_delete=models.CASCADE)
+#     listing = models.ManyToManyField(Listing)
 
-    def __str__(self):
-        return f"{self.watch_user} {self.watch_listing}"
-
-
+#     def __str__(self):
+#         return f"{self.user}"

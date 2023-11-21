@@ -9,5 +9,24 @@
     <h2>Listing {{ listing.id }}</h2>
 
         {{ listing.title }}
-        {{ listing.price }}
+        {{ listing.starting_bid }}
+    <form action="{% url 'auctions:listing' listing.id %}" method="POST">
+        {% csrf_token %}
+        <button type="submit">
+            {% if not followed %}
+                Add to watchlist
+            {% else %}
+                Remove from watchlist
+            {% endif %}
+        </button>
+    </form>
+        <!-- <p>
+        <a href="{% url 'auctions:listing' listing.id %}">
+            {% if not followed %}
+                Add to watchlist
+            {% else %}
+                Remove from watchlist
+            {% endif %}
+        </a>
+    </p> -->
 {% endblock %}

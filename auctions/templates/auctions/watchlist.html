@@ -2,7 +2,17 @@
 
 {% block body %}
     <h2>Watchlist</h2>
-    <ul>
-
-    </ul>
+    <form action="{% url 'auctions:watchlist' %}" method="POST">
+        {% csrf_token %}
+        <ul>
+            {% for item in watchlist %}
+                <li style="margin: 5px 0 5px 0">
+                    <a href="{% url 'auctions:listing' item.id %}">
+                        {{ item.title }}
+                    </a>
+                    <button type="submit" name="id" value="{{ item.id }}">Delete</button>
+                </li>
+            {% endfor %}
+        </ul>
+    </form>
 {% endblock %}
