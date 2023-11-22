@@ -10,7 +10,7 @@
                     <a href="{% url 'auctions:listing' item.id %}">
                         {{ item.title }}
                     </a>
-                    <button type="submit" name="id" value="{{ item.id }}">Delete</button>
+                    <button type="submit" class="btn btn-primary" name="id" value="{{ item.id }}">Delete</button>
                 </li>
             {% endfor %}
         </ul>

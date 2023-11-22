@@ -22,6 +22,7 @@ class Listing(models.Model):
     created_date = models.DateTimeField(auto_now_add=True)
     category_id = models.ForeignKey(Category, on_delete=models.CASCADE)
     followers = models.ManyToManyField(User)
+    image_url = models.CharField(max_length=100)
 
     def __str__(self):
         return f"{self.id} {self.title} {self.starting_bid} {self.created_date} {self.category_id}"
@@ -29,7 +30,7 @@ class Listing(models.Model):
 class Bid(models.Model):
     bid_user = models.ForeignKey(User, on_delete=models.CASCADE)
     bid_listing = models.ForeignKey(Listing, on_delete=models.CASCADE)
-    bid_time = models.DateTimeField("date bid")
+    bid_time = models.DateTimeField(auto_now_add=True)
     bid_amount = models.DecimalField(max_digits=10, decimal_places=2)
 
     def __str__(self):
@@ -38,8 +39,8 @@ class Bid(models.Model):
 class Comment(models.Model):
     comment_user = models.ForeignKey(User, on_delete=models.CASCADE)
     comment_listing = models.ForeignKey(Listing, on_delete=models.CASCADE)
-    comment_time = models.DateField("date comment")
-    comment_text = models.CharField(max_length=500)
+    comment_time = models.DateTimeField(auto_now_add=True)
+    comment_text = models.CharField(max_length=1000)
 
     def __str__(self):
         return f"{self.comment_user} {self.comment_listing} {self.comment_time} {self.comment_text}"

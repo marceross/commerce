@@ -4,10 +4,17 @@
     <h2>Active Listings</h2>
     <ul>
         {% for listing in listings %}
-            <li>
-                <a href="{% url 'auctions:listing' listing.id %}">
-                {{ listing.id }}: <strong>{{ listing.title }}</strong> {{ listing.description }} <strong>price:</strong> {{ listing.starting_bid }}
-                </a>
+
+                <div class="card" style="width: 18rem;">
+                    <img src="{{ listing.image_url }}" class="card-img-top" alt="{{ listing.title }}">
+                    <div class="card-body">
+                      <h5 class="card-title"><a href="{% url 'auctions:listing' listing.id %}">{{ listing.title }}</a></h5>
+                      <p class="card-text">{{ listing.description }}</p>
+                      <p>Starting price ${{ listing.starting_bid }}</p>
+                    </div>
+                </div>
+
+
             </li>
         {% endfor %}
     </ul>

@@ -6,13 +6,10 @@
 
 
 {% block body %}
-    <h2>Listing {{ listing.id }}</h2>
-
-        {{ listing.title }}
-        {{ listing.starting_bid }}
+<div class="card" style="width: 18rem;">
     <form action="{% url 'auctions:listing' listing.id %}" method="POST">
         {% csrf_token %}
-        <button type="submit">
+        <button type="submit" class="btn btn-info btn-sm mt-2 ml-2">
             {% if not followed %}
                 Add to watchlist
             {% else %}
@@ -20,6 +17,37 @@
             {% endif %}
         </button>
     </form>
+    <img src="{{ listing.image_url }}" class="card-img-top" alt="{{ listing.title }}">
+    <div class="card-body">
+      <h5 class="card-title">{{ listing.title }}</h5>
+      <p class="card-text">{{ listing.description }}</p>
+    </div>
+    <ul class="list-group list-group-flush">
+      <li class="list-group-item small">{{ listing.created_date }}<br>Starting price ${{ listing.starting_bid }}</li>
+    </ul>
+     <p>Place your bid</p>
+     <form class="form-inline">
+        <div class="form-group mx-sm-3 mb-2">
+            <input type="number" class="form-control" id="" placeholder="{{suggested_bid}}">
+        </div>
+        <input type="submit" class="btn btn-primary mb-2">
+      </form>
+  </div>
+
+    <div>
+        <p>Comentario</p>
+        <p>Comentario 2</p>
+    </div>
+
+    <form>
+        <div class="form-group">
+          <input type="text" class="form-control" id="" placeholder="Make a comment">
+          <small id="emailHelp" class="form-text text-muted">Your comment is subject to review, if found morally incorrect it will be deleted.</small>
+        </div>
+        <button type="submit" class="btn btn-primary">Submit</button>
+      </form>
+
+
         <!-- <p>
         <a href="{% url 'auctions:listing' listing.id %}">
             {% if not followed %}
