@@ -23,6 +23,8 @@ class Listing(models.Model):
     category_id = models.ForeignKey(Category, on_delete=models.CASCADE)
     followers = models.ManyToManyField(User)
     image_url = models.CharField(max_length=100)
+    created_by = models.ForeignKey(User, on_delete=models.CASCADE, related_name='owned_listings')
+    closed = models.BooleanField(default=False)
 
     def __str__(self):
         return f"{self.id} {self.title} {self.starting_bid} {self.created_date} {self.category_id}"

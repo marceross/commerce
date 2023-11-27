@@ -6,10 +6,21 @@
 
 
 {% block body %}
+
+{% if listing.closed %}
+<h3>Listing closed!</h3>
+    {% if latest_bid %}
+    <p>
+        Sold to {{latest_bid.bid_user.username}}
+    </p>
+    {% endif %}
+    {% else %}
+        <h2>Listing: {{ listing.title }}</h2>
+{% endif %}
 <div class="card" style="width: 18rem;">
-    <form action="{% url 'auctions:listing' listing.id %}" method="POST">
+    <form method="POST">
         {% csrf_token %}
-        <button type="submit" class="btn btn-info btn-sm mt-2 ml-2">
+        <button type="submit" name="add_to_wl" value="1" class="btn btn-info btn-sm mt-2 ml-2">
             {% if not followed %}
                 Add to watchlist
             {% else %}
@@ -23,30 +34,56 @@
       <p class="card-text">{{ listing.description }}</p>
     </div>
     <ul class="list-group list-group-flush">
-      <li class="list-group-item small">{{ listing.created_date }}<br>Starting price ${{ listing.starting_bid }}</li>
+      <li class="list-group-item small">{{ listing.created_date }}
+        <br>Starting price ${{ listing.starting_bid }}
+        <br>{% if latest_bid %}Current Bid ${{ latest_bid.bid_amount }} ({{latest_bid.bid_user.username}}){% endif %}
+      </li>
     </ul>
+    {% if not listing.closed %}
      <p>Place your bid</p>
-     <form class="form-inline">
+     <form class="form-inline" method="POST">
+        {% csrf_token %}
         <div class="form-group mx-sm-3 mb-2">
-            <input type="number" class="form-control" id="" placeholder="{{suggested_bid}}">
+            <input type="number" class="form-control" name="bid" step="0.01"
+                min="{% if latest_bid %}{{ latest_bid.bid_amount|add:1 }}{% else %}{{ listing.starting_bid }}{% endif %}"
+                placeholder="{{ latest_bid.bid_amount|default:listing.starting_bid }}"
+                required>
         </div>
-        <input type="submit" class="btn btn-primary mb-2">
+        <button type="submit" class="btn btn-primary mb-2">Bid</button>
       </form>
+    {% endif %}
   </div>
 
+<!--Show all bids???-->
+
     <div>
-        <p>Comentario</p>
-        <p>Comentario 2</p>
+        <h4 style="margin-top:15px">Comments</h4>
+        {% for comment in listing.comment_set.all %}
+            <p>
+                <a style="color:gray">{{ comment.comment_user.username }} at {{ comment.comment_time }}</a>
+                <br/>
+                <a>{{ comment.comment_text }}</a>
+            </p>
+        {% endfor %}
     </div>
 
-    <form>
+    <form method="POST">
+        {% csrf_token %}
         <div class="form-group">
-          <input type="text" class="form-control" id="" placeholder="Make a comment">
+          <input type="text" class="form-control" name="comment" placeholder="Make a comment" required>
           <small id="emailHelp" class="form-text text-muted">Your comment is subject to review, if found morally incorrect it will be deleted.</small>
         </div>
         <button type="submit" class="btn btn-primary">Submit</button>
       </form>
 
+      {% if not listing.closed and request.user == listing.created_by %}
+        <div style="margin-top: 20px">
+            <form method="POST">
+                {% csrf_token %}
+                <button type="submit" name="close" value="1" class="btn btn-danger mb-2">Close Listing</button>
+            </form>
+        </div>
+      {% endif %}
 
         <!-- <p>
         <a href="{% url 'auctions:listing' listing.id %}">
@@ -57,4 +94,5 @@
             {% endif %}
         </a>
     </p> -->
+</div>
 {% endblock %}

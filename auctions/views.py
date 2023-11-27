@@ -12,7 +12,7 @@ from django import forms
 class NewListing(forms.ModelForm):
     class Meta:
         model = Listing
-        exclude = ["created_date", "followers"]
+        exclude = ["created_date", "followers", "created_by", "closed"]
 
 #https://docs.djangoproject.com/en/4.2/topics/forms/modelforms/
 #create forms from models, conventions
@@ -35,8 +35,15 @@ class AddWatch(forms.Form):
 def index(request):
     return render(request, "auctions/index.html",
     {
-        "listings": Listing.objects.all()
+        "listings": Listing.objects.filter(closed=False)
     })
+
+def closed_listings(request):
+    return render(request, "auctions/closed_listings.html",
+    {
+        "listings": Listing.objects.filter(closed=True)
+    })
+
 
 
 def login_view(request):
@@ -126,8 +133,10 @@ def create_page(request):
     if request.method== "POST":
         form = NewListing(request.POST)
         if form.is_valid():
-            listing = form.save()
-            return listing_page(request, listing.id)
+            listing = form.save(commit=False)
+            listing.created_by = request.user
+            listing.save()
+            return  HttpResponseRedirect(reverse("auctions:listing", args=(listing.id,)))
         else:
             return render(request, "auctions/create_listing.html", {"form": form})
     return render(request, "auctions/create_listing.html", {"form": NewListing()})
@@ -149,20 +158,48 @@ def create_page(request):
 def listing_page(request, listing_id):
     try:
         listing = Listing.objects.get(pk=listing_id)
-        followed = True if \
-            listing.followers.filter(pk=request.user.id).first() else False
+        latest_bid = listing.bid_set.order_by('bid_amount').last()
+        followed = True if (request.user.is_authenticated and
+            listing.followers.filter(pk=request.user.id).first()) else False
 
         if request.method == "POST":
-            if not followed:
-                listing.followers.add(request.user)
-            else:
-                listing.followers.remove(request.user)
-            followed = not followed
+            if not request.user.is_authenticated:
+                return HttpResponseRedirect(reverse('auctions:login'))
+
+            if request.POST.get('add_to_wl'):
+                if not followed:
+                    listing.followers.add(request.user)
+                else:
+                    listing.followers.remove(request.user)
+                followed = not followed
+
+            elif request.POST.get('bid'):
+                bid = float(request.POST["bid"])
+                if (not latest_bid and bid >= listing.starting_bid) or (bid > latest_bid.bid_amount):
+                    Bid(
+                        bid_user = request.user,
+                        bid_listing = listing,
+                        bid_amount=bid
+                    ).save()
+                    latest_bid = listing.bid_set.order_by('bid_amount').last()
+
+            elif request.POST.get('comment'):
+                Comment(
+                    comment_user = request.user,
+                    comment_listing = listing,
+                    comment_text=request.POST["comment"]
+                ).save()
+
+            elif request.POST.get('close'):
+                if request.user == listing.created_by:
+                    listing.closed = True
+                    listing.save()
 
     except Listing.DoesNotExist:
         raise Http404("Listing not found.")
     return render(request, "auctions/listings.html",{
         "listing": listing,
+        "latest_bid": latest_bid,
         "followed": followed
     })
 # error, context must be a dict rather than a set
