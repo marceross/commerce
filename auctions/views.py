@@ -1,4 +1,5 @@
 from django.contrib.auth import authenticate, login, logout
+from django.contrib.auth.decorators import login_required
 from django.db import IntegrityError
 from django.http import HttpResponseBadRequest, HttpResponseRedirect, Http404
 from django.shortcuts import render
@@ -99,6 +100,7 @@ def register(request):
 
 
 # a list of categories takes to a list of products inside a category with the active listings
+@login_required
 def categories(request):
     return render(request, "auctions/categories.html",
     {
@@ -106,6 +108,7 @@ def categories(request):
     })
 '''get_list_or_404()'''
 
+@login_required
 def category(request, category_id):
     try:
         category = Category.objects.get(pk=category_id)
@@ -118,6 +121,7 @@ def category(request, category_id):
 
 
 # watchlist page of all the product added previoulsly to watchlist 
+@login_required
 def watchlist(request):
     if request.method== "POST":
         id = request.POST.get('id')
@@ -129,6 +133,7 @@ def watchlist(request):
     })
 
 
+@login_required
 def create_page(request):
     if request.method== "POST":
         form = NewListing(request.POST)
@@ -155,6 +160,7 @@ def create_page(request):
 # close listing page??? same as this one, or similar... there should be a page saying that an auction was won by the signed in user
 # be able to add comments to the listing page. All comments made should be displayed on that listing
 
+@login_required
 def listing_page(request, listing_id):
     try:
         listing = Listing.objects.get(pk=listing_id)
@@ -205,7 +211,7 @@ def listing_page(request, listing_id):
 # error, context must be a dict rather than a set
 # error, AttributeError at /1 'QuerySet' object has no attribute 'id'
 
-
+@login_required
 def bid(request, listing_id):
     if request.method == "POST":
         try:
